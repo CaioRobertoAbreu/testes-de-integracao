@@ -1,7 +1,0 @@
-.idea/
-.settings
-bin/*
-*.class
-
-caelum.db.*
-
