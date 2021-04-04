@@ -85,7 +85,7 @@ public class LeilaoDao {
 	
 	@SuppressWarnings("unchecked")
 	public List<Leilao> listaLeiloesDoUsuario(Usuario usuario) {
-		return session.createQuery("select lance.leilao " +
+		return session.createQuery("select distinct lance.leilao " +
 								   "from Lance lance " +
 								   "where lance.usuario = :usuario")
 				.setParameter("usuario", usuario).list();

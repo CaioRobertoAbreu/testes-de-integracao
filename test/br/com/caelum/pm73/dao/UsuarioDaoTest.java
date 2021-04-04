@@ -3,40 +3,62 @@ package br.com.caelum.pm73.dao;
 import br.com.caelum.pm73.dominio.Usuario;
 import org.hibernate.Query;
 import org.hibernate.Session;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class UsuarioDaoTest {
 
+    private static Session session;
+    private UsuarioDao usuarioDao;
+    private Usuario usuario;
+
+    @BeforeEach
+    public void inicializa() {
+        session = new CriadorDeSessao().getSession();
+        usuarioDao = new UsuarioDao(session);
+        session.beginTransaction();
+    }
+
+    @AfterAll
+    public static void closeTransactional() {
+        session.getTransaction().rollback();
+        session.close();
+    }
+
     @Test
     public void deveEncontrarPeloNomeEEmail() {
-        //Cenario
-        Session session = mock(Session.class);
-        Query query = Mockito.mock(Query.class);
-        UsuarioDao usuarioDao = new UsuarioDao(session);
+        //cenario
 
-        Usuario usuario = new Usuario("Joao da Silva", "joao@dasilva.com");
-        String sql = "from Usuario u where u.nome = :nome and u.email = :email";
-        session.save(usuario);
+        usuario = new Usuario("Caio Abreu", "caio@abreu.com");
+        usuarioDao.salvar(usuario);
 
-        //Acao
-        when(session.createQuery(sql)).thenReturn(query);
-        when(query.setParameter("nome", "Joao da Silva")).thenReturn(query);
-        when(query.setParameter("email", "joao@dasilva.com")).thenReturn(query);
-        when(query.uniqueResult()).thenReturn(usuario);
+        //acao
+        Usuario usuarioEncontrado = usuarioDao.porNomeEEmail(usuario.getNome(), usuario.getEmail());
 
-        usuarioDao.porNomeEEmail("Joao da Silva", "joao@dasilva.com");
-        //Verificacao
-        Assertions.assertEquals("Joao da Silva", usuario.getNome());
-        Assertions.assertEquals("joao@dasilva.com", usuario.getEmail());
+        //verificacao
+        assertEquals(usuario.getNome(), usuarioEncontrado.getNome());
+        assertEquals(usuario.getEmail(), usuarioEncontrado.getEmail());
+    }
 
-        session.close();
+    @Test
+    public void deveRetornarNullParaUsuarioInexistente(){
+        //cenario
 
+        //acao
+        Usuario usuarioEncontrado = usuarioDao.porNomeEEmail("Joao Abreu", "joao@teste.com");
+
+        //verificacao
+        assertNull(usuarioEncontrado);
     }
 
 }
